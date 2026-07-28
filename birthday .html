@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>শুভ জন্মদিন!</title>
+    <style>
+        /* স্লিম, এলিগেন্ট বাংলা ও ইউনিক ঘোস্ট ফন্ট ইম্পোর্ট */
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600&family=Creepster&family=Cinzel:wght@400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            height: 100vh;
+            background: #040508;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            position: relative;
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+
+        /* ক্যানভাস (আতশবাজি) */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ভেসে ওঠা বেলুন */
+        .balloon-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -120px;
+            width: 40px;
+            height: 52px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            animation: floatUp 7s linear infinite;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+
+        .balloon::before {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+            100% { transform: translateY(-115vh) rotate(25deg); opacity: 0; }
+        }
+
+        /* লিকুইড গ্লাস (Liquid Glass) কার্ড */
+        .card-container {
+            position: relative;
+            width: 90%;
+            max-width: 420px;
+            min-height: 580px;
+            
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: blur(40px) saturate(220%);
+            -webkit-backdrop-filter: blur(40px) saturate(220%);
+            
+            border-radius: 35px;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            
+            box-shadow: 0 35px 90px rgba(0, 0, 0, 0.95), 
+                        inset 0 0 35px rgba(255, 255, 255, 0.15),
+                        inset -10px -10px 25px rgba(0, 0, 0, 0.4),
+                        0 0 30px rgba(0, 242, 254, 0.12);
+                        
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .card-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            animation: liquidMove 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes liquidMove {
+            0% { transform: translate(-10%, -10%) rotate(0deg); }
+            100% { transform: translate(10%, 10%) rotate(360deg); }
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* প্রিমিয়াম প্রোফাইল পিকচার ফ্রেম স্টাইল */
+        .profile-frame {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, #ffd700, #ff007f, #00f2fe);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            background: #111;
+        }
+
+        /* স্লিম বাংলা ফন্ট ও গ্লাস বর্ডার স্টাইল */
+        .question-text {
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 21px;
+            font-weight: 500;
+            line-height: 1.6;
+            color: #ffffff;
+            margin-bottom: 25px;
+            -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.6);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.3), 0 4px 10px rgba(0, 0, 0, 0.8);
+            letter-spacing: 0.3px;
+        }
+
+        /* ঘোস্ট টাইটেল বর্ডার সহ */
+        .ghost-title {
+            font-family: 'Creepster', cursive;
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #ffd700 50%, #ff007f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            filter: drop-shadow(0 0 15px rgba(255, 0, 128, 0.6));
+        }
+
+        /* নাম ও বর্ডার */
+        .floating-name {
+            font-family: 'Hind Siliguri', sans-serif;
+            font-size: 36px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffffff 0%, #ffe600 50%, #ff7b00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7);
+            filter: drop-shadow(0 4px 15px rgba(255, 215, 0, 0.6));
+            margin: 4px 0;
+        }
+
+        .floating-date {
+            font-family: 'Cinzel', 'Hind Siliguri', serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 5px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            margin-bottom: 12px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+        }
+
+        /* স্লিম গ্লাসি বাটন */
+        .btn-gold {
+            font-family: 'Hind Siliguri', sans-serif;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.85), rgba(255, 140, 0, 0.85));
+            color: #06070a;
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            padding: 12px 36px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.5);
+        }
+
+        .love-action-area {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.85), rgba(79, 172, 254, 0.85));
+            color: #000;
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.4);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, rgba(255, 8, 68, 0.85), rgba(255, 177, 153, 0.85));
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(255, 8, 68, 0.4);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
+            position: absolute;
+            transition: all 0.2s ease-out;
+        }
+
+        /* থ্রিডি লাভ ইমোজি অ্যানিমেশন */
+        .heart-float {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            transition: all 2.2s cubic-bezier(0.16, 1, 0.3, 1);
+            filter: drop-shadow(0 5px 15px rgba(255, 0, 100, 0.7));
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+    <div class="balloon-container" id="balloon-container"></div>
+
+    <div class="card-container">
+        
+        <!-- ১. প্রথম স্ক্রিন -->
+        <div id="screen-1" class="screen active">
+            <div class="question-text">
+                আজকে কি বিশেষ কোনো দিন? তুমি কি জানো? 🧐✨<br>
+                না জানলে ঝটপট নিচে চাপ দাও! 👇🎁
+            </div>
+            <button class="btn-gold" onclick="switchScreen(1, 2)">ম্যাজিক দেখো 💖✨</button>
+        </div>
+
+        <!-- ২. দ্বিতীয় স্ক্রিন (ছবি, ঘোস্ট টাইটেল ও বর্ডার) -->
+        <div id="screen-2" class="screen">
+            
+            <!-- আপনার দেয়া ছবি সরাসরি যুক্ত করা হলো -->
+            <div class="profile-frame">
+                <img src="https://i.postimg.cc/wv6QH7LN/photo.jpg" alt="Birthday Person" class="profile-img">
+            </div>
+
+            <div class="ghost-title">HAPPY BIRTHDAY</div>
+
+            <div class="floating-name">Misti 💝</div>
+            <div class="floating-date">14 September🗓️ </div>
+
+            <p style="margin-bottom: 18px; color: #f3f4f6; font-size: 15px; font-weight: 400; line-height: 1.6; -webkit-text-stroke: 0.3px rgba(255,255,255,0.4);">
+                তোমার আগামীর দিনগুলো শুভ্র আলো ও অনাবিল আনন্দে ভরে উঠুক! 🎈🌟🎂
+            </p>
+
+            <button class="btn-gold" onclick="switchScreen(2, 3)">সারপ্রাইজ চালু করো 📤🎉</button>
+        </div>
+
+        <!-- ৩. প্রশ্ন স্ক্রিন -->
+        <div id="screen-3" class="screen">
+            <div class="question-text" id="love-title">
+                সত্যি করে বলো তো, তুমি কি আমাকে ভালোবাসো? 🥺💖
+            </div>
+
+            <div class="love-action-area" id="action-area">
+                <button class="btn-gold btn-yes" id="yesBtn" style="transform: translateX(-70px);" onclick="handleYes()">হ্যাঁ অনেক! 🌷🤌</button>
+                <button class="btn-gold btn-no" id="noBtn" style="transform: translateX(70px);" onmouseenter="escapeNo()" onclick="escapeNo()">একদম না 😤🔪</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // বেলুন তৈরি
+        function createBalloons() {
+            const container = document.getElementById('balloon-container');
+            const gradients = [
+                'radial-gradient(circle at 30% 30%, #ff9a9e, #fecfef)',
+                'radial-gradient(circle at 30% 30%, #a1c4fd, #c2e9fb)',
+                'radial-gradient(circle at 30% 30%, #ffecd2, #fcb69f)',
+                'radial-gradient(circle at 30% 30%, #84fab0, #8fd3f4)'
+            ];
+            
+            for (let i = 0; i < 18; i++) {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.left = `${Math.random() * 100}%`;
+                balloon.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+                balloon.style.animationDelay = `${Math.random() * 7}s`;
+                balloon.style.animationDuration = `${5 + Math.random() * 4}s`;
+                container.appendChild(balloon);
+            }
+        }
+        createBalloons();
+
+        function playTune() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.06, ctx.currentTime + i * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.2);
+                    osc.stop(ctx.currentTime + i * 0.2 + 0.25);
+                });
+            } catch(e){}
+        }
+
+        let fireworkInterval;
+
+        function switchScreen(from, to) {
+            playTune();
+            const current = document.getElementById(`screen-${from}`);
+            const next = document.getElementById(`screen-${to}`);
+
+            current.classList.remove('active');
+            setTimeout(() => {
+                current.style.display = 'none';
+                next.style.display = 'flex';
+                setTimeout(() => next.classList.add('active'), 50);
+                
+                if(to === 2 || to === 3) {
+                    if(!fireworkInterval) {
+                        fireworkInterval = setInterval(triggerFireworks, 500);
+                    }
+                }
+            }, 400);
+        }
+
+        function escapeNo() {
+            const noBtn = document.getElementById('noBtn');
+            const area = document.getElementById('action-area');
+            const areaRect = area.getBoundingClientRect();
+
+            const maxX = (areaRect.width / 2) - 50;
+            const maxY = (areaRect.height / 2) - 20;
+
+            const randomX = (Math.random() * maxX * 2) - maxX;
+            const randomY = (Math.random() * maxY * 2) - maxY;
+
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        }
+
+        // লাভ ইফেক্ট
+        function triggerLoveEffect() {
+            const hearts = ['❤️', '💖', '💕', '💗', '🥰', '✨', '😍'];
+            for (let i = 0; i < 45; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-float';
+                heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = (Math.random() * 80 + 10) + 'vw';
+                heart.style.top = (Math.random() * 40 + 50) + 'vh';
+                heart.style.fontSize = (Math.random() * 26 + 22) + 'px';
+                document.body.appendChild(heart);
+
+                setTimeout(() => {
+                    const randomX = (Math.random() - 0.5) * 350;
+                    const randomY = -(Math.random() * 450 + 150);
+                    heart.style.transform = `translate(${randomX}px, ${randomY}px) scale(${Math.random() * 1.5 + 0.8})`;
+                    heart.style.opacity = '0';
+                }, 50);
+
+                setTimeout(() => heart.remove(), 2300);
+            }
+        }
+
+        function handleYes() {
+            playTune();
+            triggerLoveEffect();
+
+            const loveTitle = document.getElementById('love-title');
+            const actionArea = document.getElementById('action-area');
+
+            loveTitle.innerHTML = "<span style='color:#ffd700; font-size:24px; font-weight:600; -webkit-text-stroke: 0.8px rgba(255,255,255,0.7);'>আমি জানতাম তুমি অনেক ভালোবাসো! 🥰💖✨</span><br><span style='font-size:16px; color:#f3f4f6; font-weight:400; display:block; margin-top:14px; -webkit-text-stroke: 0.3px rgba(255,255,255,0.4);'>I love you so much 😍😘</span>";
+            actionArea.style.display = 'none';
+
+            for(let i = 0; i < 15; i++) {
+                setTimeout(triggerFireworks, i * 150);
+            }
+        }
+
+        /* আতশবাজি ক্যানভাস */
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function triggerFireworks() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * (canvas.height * 0.55);
+            const colors = ['#ffd700', '#ff007f', '#00f2fe', '#00ff88', '#ffffff', '#ff9f43', '#9b59b6'];
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    radius: Math.random() * 3 + 1.2,
+                    vx: (Math.random() - 0.5) * 11,
+                    vy: (Math.random() - 0.5) * 11,
+                    alpha: 1
+                });
+            }
+        }
+
+        function animateCanvas() {
+            ctx.fillStyle = 'rgba(4, 5, 8, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.015;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.fill();
+
+                if (p.alpha <= 0) particles.splice(index, 1);
+            });
+
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+    </script>
+</body>
+</html>
